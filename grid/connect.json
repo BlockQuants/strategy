@@ -1,0 +1,7 @@
+{
+    "exchange": "bitmex", 
+    "contract": "BTC/USD", 
+    "symbol": "XBTUSD",
+    "apiKey": "your apiKey",
+    "secret": "your secret"
+}
