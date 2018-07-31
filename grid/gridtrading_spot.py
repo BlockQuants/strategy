@@ -336,8 +336,8 @@ class Ui_Form(object):
         DISTANCE = float(self.textEdit_distance.toPlainText())
         ZERO_POINT = float(self.textEdit_zeropoint.toPlainText())
         AMOUNT = int(self.textEdit_amount.toPlainText())
-        MAX_HOLDING = int(int(self.textEdit_maxposition.toPlainText())/AMOUNT)
-        MIN_HOLDING = max(0,int(int(self.textEdit_minposition.toPlainText())/AMOUNT))
+        MAX_HOLDING = np.floor(int(self.textEdit_maxposition.toPlainText())/AMOUNT)
+        MIN_HOLDING = np.ceil(max(0,int(int(self.textEdit_minposition.toPlainText())/AMOUNT)))
         INF_PRICE = 15000
         self.holding_u = -scipy.linspace(MIN_HOLDING,MAX_HOLDING,-MIN_HOLDING+MAX_HOLDING+1)
         price_u = scipy.linspace(MIN_HOLDING*DISTANCE,MAX_HOLDING*DISTANCE,-MIN_HOLDING+MAX_HOLDING+1)
