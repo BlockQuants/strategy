@@ -266,7 +266,7 @@ class Ui_Form(object):
         if self.login_ok == 1:
             if self.generate_ok == 1:
                 today = datetime.date.today()
-                self.since = self.api.parse8601('%sT00:00:00.0000' %today.isoformat())
+                self.start_time = self.api.parse8601('%sT00:00:00.0000' %today.isoformat())
                 self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"开始执行"))
                 self.row_count += 1
                 self.tableView.setModel(self.model) 
@@ -288,9 +288,9 @@ class Ui_Form(object):
     def download(self):
         if self.login_ok == 1:
             today = datetime.date.today()
-            since = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
+            start_time = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
             try:
-                all_orders = self.api.fetchOrders(self.contract,since,500)
+                all_orders = self.api.fetchOrders(self.contract,start_time,500)
                 trading_recode = pd.DataFrame()
                 trading_recode['trade_time'] = [x['info']['timestamp'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
                 trading_recode['order_time'] =  [x['info']['transactTime'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
@@ -315,10 +315,10 @@ class Ui_Form(object):
     def cancelall(self):
         if self.login_ok == 1:
             today = datetime.date.today()
-            since = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
+            start_time = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
             #全撤
             try:
-                all_orders = self.api.fetchOrders(self.contract,since,500)
+                all_orders = self.api.fetchOrders(self.contract,start_time,500)
                 all_working_orders_id = [x['id'] for x in all_orders if x['status']=='open']
                 for id in all_working_orders_id:
                     self.api.cancelOrder(id)
@@ -430,7 +430,7 @@ class Ui_Form(object):
                 bid_p = self.bid_price_u[self.holding_u == holding_now][0]
                 ask_p = self.ask_price_u[self.holding_u == holding_now][0]
                 #检验是否需要下单
-                all_orders = self.api.fetchOrders(self.contract,self.since)
+                all_orders = self.api.fetchOrders(self.contract,self.start_time)
                 working_price = [x['price'] for x in all_orders if x['status'] == 'open']
                 if len(all_orders) < 100:
                     if bid_p not in working_price:
