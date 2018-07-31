@@ -339,7 +339,7 @@ class Ui_Form(object):
         MAX_HOLDING = np.floor(int(self.textEdit_maxposition.toPlainText())/AMOUNT)
         MIN_HOLDING = np.ceil(max(0,int(int(self.textEdit_minposition.toPlainText())/AMOUNT)))
         INF_PRICE = 15000
-        self.holding_u = -scipy.linspace(MIN_HOLDING,MAX_HOLDING,-MIN_HOLDING+MAX_HOLDING+1)
+        self.holding_u = -scipy.linspace(-MAX_HOLDING,-MIN_HOLDING,-MIN_HOLDING+MAX_HOLDING+1)
         price_u = scipy.linspace(MIN_HOLDING*DISTANCE,MAX_HOLDING*DISTANCE,-MIN_HOLDING+MAX_HOLDING+1)
         self.bid_price_u = ZERO_POINT + np.hstack((-ZERO_POINT,price_u[:-1]))
         self.ask_price_u = ZERO_POINT + np.hstack((price_u[1:], INF_PRICE))
@@ -353,16 +353,26 @@ class Ui_Form(object):
         if self.login_ok == 1:
             if self.onProcess == 0:
                 try:
-	                temp_t = self.api.fetch_order_book(self.contract)
-	                self.textBrowser_price.setText('%s'%((float(temp_t['bids'][0][0])+float(temp_t['asks'][0][0]))/2))
-	                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"买一价: %s  卖一价: %s"%(temp_t['bids'][0],temp_t['asks'][0]) ))
-	                self.row_count += 1
-	                Pos = self.api.fetch_balance()[self.contract.split('/')[0]]
-	                holding_now = np.floor(Pos['total']/self.AMOUNT)
-	                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"当前持仓： %s"%(holding_now * self.AMOUNT) ))
-	                self.row_count += 1                    
-	                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"准备下单： 买入价: %s  卖出价: %s"%(self.bid_price_u[self.holding_u == holding_now],self.ask_price_u[self.holding_u == holding_now])))
-	                self.row_count += 1  
+                    temp_t = self.api.fetch_order_book(self.contract)
+                    self.textBrowser_price.setText('%s'%((float(temp_t['bids'][0][0])+float(temp_t['asks'][0][0]))/2))
+                    self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"买一价: %s  卖一价: %s"%(temp_t['bids'][0],temp_t['asks'][0]) ))
+                    self.row_count += 1
+                    Pos = self.api.fetch_balance()[self.contract.split('/')[0]]
+                    holding_now = np.floor(Pos['total']/self.AMOUNT)
+                    if holding_now in self.holding_u:
+                        self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"当前持仓： %s"%(holding_now * self.AMOUNT)))
+                        self.row_count += 1                    
+                        self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"准备下单： 买入价: %s  卖出价: %s"%(self.bid_price_u[self.holding_u == holding_now],self.ask_price_u[self.holding_u == holding_now])))
+                        self.row_count += 1 
+                    elif holding_now > max(self.holding_u):
+                        self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"准备下单： 卖出价: %s 卖出量： %s"%(self.ask_price_u[self.holding_u == max(self.holding_u)],holding_now - max(self.holding_u))))
+                        self.row_count += 1
+                    elif holding_now < min(self.holding_u):
+                        self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"准备下单： 买入价: %s 买入量： %s"%(self.bid_price_u[self.holding_u == min(self.holding_u)],min(self.holding_u) - holding_now)))
+                        self.row_count += 1
+                    else:
+                        self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"准备下单： 买入价: %s  卖出价: %s"%(self.bid_price_u[self.holding_u == max(self.holding_u[self.holding_u<holding_now])],self.ask_price_u[self.holding_u == min(self.holding_u[self.holding_u>holding_now])])))
+                        self.row_count += 1 
                 except:
                     self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"查询失败")) 
                     self.row_count += 1
@@ -382,6 +392,10 @@ class Ui_Form(object):
                 load_dict = json.load(load_f)
             self.exchange = load_dict['exchange']
             self.contract = load_dict['contract']
+            if self.exchange in ['bitmex']:
+                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(self.exchange + u"不支持现货交易，请修改登录信息或使用期货版"))
+                self.row_count += 1 
+                return
             exec("self.api = ccxt."+self.exchange+"({'apiKey': load_dict['apiKey'],'secret': load_dict['secret'],})")
             self.textEdit_exchange.setText(self.exchange)
             self.textEdit_contract.setText(self.contract)
@@ -433,26 +447,57 @@ class Ui_Form(object):
                 all_orders = self.api.fetchOrders(self.contract,self.start_time)
                 working_price = [x['price'] for x in all_orders if x['status'] == 'open']
                 if len(all_orders) < 100:
-                    if bid_p not in working_price:
+                    if holding_now in self.holding_u:
+                        if bid_p not in working_price:
+                            try:
+                                order_1 = self.api.create_limit_buy_order(self.contract, self.AMOUNT, bid_p)
+                                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 挂买单  %s"%bid_p))
+                                self.row_count += 1
+                                self.tableView.setModel(self.model)
+                            except:
+                                pass
+
+                        if ask_p not in working_price:
+                            try:
+                                order_2 = self.api.create_limit_sell_order(self.contract, self.AMOUNT, ask_p)
+                                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 挂卖单  %s"%ask_p))
+                                self.row_count += 1
+                                self.tableView.setModel(self.model)
+
+                            except:
+
+                                pass
+
+                    elif holding_now > max(self.holding_u):
                         try:
-                            order_1 = self.api.create_limit_buy_order(self.contract, self.AMOUNT, bid_p)
-                            self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 挂买单  %s"%bid_p))
-                            self.row_count += 1
-                            self.tableView.setModel(self.model)
+                            if self.ask_price_u[self.holding_u == max(self.holding_u)][0] not in working_price:
+                                self.api.create_limit_sell_order(self.contract, holding_now - max(self.holding_u), self.ask_price_u[self.holding_u == max(self.holding_u)][0])
+                                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime())+u"  挂卖单  价：%s 量：%s"%(self.ask_price_u[self.holding_u == max(self.holding_u)],holding_now - max(self.holding_u))))
+                                self.row_count += 1
                         except:
                             pass
 
-                    if ask_p not in working_price:
+                    elif holding_now < min(self.holding_u):
                         try:
-                            order_2 = self.api.create_limit_sell_order(self.contract, self.AMOUNT, ask_p)
-                            self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 挂卖单  %s"%ask_p))
-                            self.row_count += 1
-                            self.tableView.setModel(self.model)
-
+                            if self.bid_price_u[self.holding_u == max(self.holding_u)][0] not in working_price:
+                                self.api.create_limit_buy_order(self.contract, min(self.holding_u) - holding_now, self.bid_price_u[self.holding_u == max(self.holding_u)][0])
+                                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 挂买单  价：%s 量：%s"%(self.bid_price_u[self.holding_u == min(self.holding_u)],min(self.holding_u) - holding_now)))
+                                self.row_count += 1
                         except:
-
                             pass
-
+                    else:
+                        bid_p = self.bid_price_u[self.holding_u == max(self.holding_u[self.holding_u<holding_now])][0]
+                        bid_a = min(self.holding_u[self.holding_u>holding_now]) - self.holding_now
+                        ask_p = self.ask_price_u[self.holding_u == min(self.holding_u[self.holding_u>holding_now])][0]
+                        ask_a = max(self.holding_u[self.holding_u<holding_now]) - self.holding_now
+                        if bid_p not in working_price:
+                            try:
+                                self.api.create_limit_buy_order(self.contract, bid_a, bid_p)
+                                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 挂买单  价：%s 量：%s"%(bid_p,bid_a)))
+                                self.row_count += 1
+                                self.tableView.setModel(self.model)
+                            except:
+                                pass
                 else:
                     all_orders = self.api.fetchOrders(self.contract,500)
                     all_working_orders_id = [x['id'] for x in all_orders if x['status']=='open']
