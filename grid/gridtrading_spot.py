@@ -117,6 +117,10 @@ class Ui_Form(object):
         self.pushButton_stop.setGeometry(QtCore.QRect(260, 0, 130, 40))
         self.pushButton_stop.setFont(font)
         self.pushButton_stop.setObjectName(_fromUtf8("pushButton_stop"))
+        self.pushButton_coverall = QtGui.QPushButton(Form)
+        self.pushButton_coverall.setGeometry(QtCore.QRect(650, 0, 130, 40))
+        self.pushButton_coverall.setFont(font)
+        self.pushButton_coverall.setObjectName(_fromUtf8("pushButton_coverall"))
 
         self.tableView = QtGui.QTableView(Form)
         self.tableView.setGeometry(QtCore.QRect(510, 160, 241, 370))
@@ -169,7 +173,8 @@ class Ui_Form(object):
         QtCore.QObject.connect(self.pushButton_stop, QtCore.SIGNAL(_fromUtf8("clicked()")), self.stop)
         QtCore.QObject.connect(self.pushButton_cancelall, QtCore.SIGNAL(_fromUtf8("clicked()")), self.cancelall)
         QtCore.QObject.connect(self.pushButton_downLoadTrading, QtCore.SIGNAL(_fromUtf8("clicked()")), self.download)
-        
+        QtCore.QObject.connect(self.pushButton_coverall, QtCore.SIGNAL(_fromUtf8("clicked()")), self.coverall)
+       
         QtCore.QMetaObject.connectSlotsByName(Form)
 
 
@@ -185,6 +190,7 @@ class Ui_Form(object):
         self.pushButton_cancelall.setText(_translate("Form", "全部撤单", None))
         self.pushButton_login.setText(_translate("Form", "账户登录", None))
         self.pushButton_downLoadTrading.setText(_translate("Form", "成交记录导出", None))
+        self.pushButton_coverall.setText(_translate("Form", "一键平仓", None))
         self.groupBox.setTitle(_translate("Form", "策略参数", None))
         self.label_amount.setText(_translate("Form", "挂单量", None))
         self.label_zeropoint.setText(_translate("Form", "中心价位", None))
@@ -266,7 +272,7 @@ class Ui_Form(object):
         if self.login_ok == 1:
             if self.generate_ok == 1:
                 today = datetime.date.today()
-                self.start_time = self.api.parse8601('%sT00:00:00.0000' %today.isoformat())
+                self.since = self.api.parse8601('%sT00:00:00.0000' %today.isoformat())
                 self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"开始执行"))
                 self.row_count += 1
                 self.tableView.setModel(self.model) 
@@ -288,9 +294,9 @@ class Ui_Form(object):
     def download(self):
         if self.login_ok == 1:
             today = datetime.date.today()
-            start_time = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
+            since = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
             try:
-                all_orders = self.api.fetchOrders(self.contract,start_time,500)
+                all_orders = self.api.fetchOrders(self.contract,since,500)
                 trading_recode = pd.DataFrame()
                 trading_recode['trade_time'] = [x['info']['timestamp'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
                 trading_recode['order_time'] =  [x['info']['transactTime'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
@@ -315,10 +321,10 @@ class Ui_Form(object):
     def cancelall(self):
         if self.login_ok == 1:
             today = datetime.date.today()
-            start_time = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
+            since = self.api.parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
             #全撤
             try:
-                all_orders = self.api.fetchOrders(self.contract,start_time,500)
+                all_orders = self.api.fetchOrders(self.contract,since,500)
                 all_working_orders_id = [x['id'] for x in all_orders if x['status']=='open']
                 for id in all_working_orders_id:
                     self.api.cancelOrder(id)
@@ -331,6 +337,32 @@ class Ui_Form(object):
             self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"尚未登录"))
             self.row_count += 1
         self.tableView.setModel(self.model) 
+
+    def coverall(self):
+        if self.login_ok == 1:
+            try:
+                temp_t = self.api.fetch_order_book(self.contract)
+                self.textBrowser_price.setText('%s'%((float(temp_t['bids'][0][0])+float(temp_t['asks'][0][0]))/2))
+                Pos = self.api.fetch_balance()[self.contract.split('/')[0]]
+                holding_now = np.floor(Pos['total']/self.AMOUNT)
+                if holding_now > 0:
+                    order_2 = self.api.create_limit_sell_order(self.contract, holding_now, float(temp_t['bids'][0][0]))
+                    self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 对价平仓  %s"%float(temp_t['bids'][0][0])))
+                    self.row_count += 1
+                    self.tableView.setModel(self.model)
+                if holding_now < 0:
+                    order_2 = self.api.create_limit_buy_order(self.contract, -holding_now, float(temp_t['asks'][0][0]))
+                    self.model.setItem(self.row_count, 0, QtGui.QStandardItem(time.strftime("%m-%d %H:%M", time.localtime()) +u" 对价平仓  %s"%float(temp_t['asks'][0][0])))
+                    self.row_count += 1
+                    self.tableView.setModel(self.model)
+            except:
+                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"平仓登录"))
+                self.row_count += 1
+                self.tableView.setModel(self.model)                  
+        else:
+            self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"尚未登录"))
+            self.row_count += 1
+            self.tableView.setModel(self.model)  
 
     def generatetable(self):
         DISTANCE = float(self.textEdit_distance.toPlainText())
@@ -444,7 +476,7 @@ class Ui_Form(object):
                 bid_p = self.bid_price_u[self.holding_u == holding_now][0]
                 ask_p = self.ask_price_u[self.holding_u == holding_now][0]
                 #检验是否需要下单
-                all_orders = self.api.fetchOrders(self.contract,self.start_time)
+                all_orders = self.api.fetchOrders(self.contract,self.since)
                 working_price = [x['price'] for x in all_orders if x['status'] == 'open']
                 if len(all_orders) < 100:
                     if holding_now in self.holding_u:
