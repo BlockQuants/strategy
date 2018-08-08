@@ -298,12 +298,12 @@ class Ui_Form(object):
             try:
                 all_orders = self.api.fetchOrders(self.contract,since,500)
                 trading_recode = pd.DataFrame()
-                trading_recode['trade_time'] = [x['info']['timestamp'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
-                trading_recode['order_time'] =  [x['info']['transactTime'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
-                trading_recode['order_price'] = [x['price'] for x in all_orders  if x['info']['ordStatus'] in ['Filled','Partially Filled']]
-                trading_recode['trade_price'] = [x['info']['avgPx'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
-                trading_recode['trade_amount'] = [x['filled'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
-                trading_recode['side'] = [x['side'] for x in all_orders if x['info']['ordStatus'] in ['Filled','Partially Filled']]
+                trading_recode['trade_time'] = [x['datetime'] for x in all_orders if x['info']['state'] in ['filled','partially filled']]
+                trading_recode['order_price'] = [x['price'] for x in all_orders  if x['info']['state'] in ['filled','partially filled']]
+                trading_recode['trade_price'] = [x['info']['price'] for x in all_orders if x['info']['state'] in ['filled','partially filled']]
+                trading_recode['trade_amount'] = [x['filled'] for x in all_orders if x['info']['state'] in ['filled','partially filled']]
+                trading_recode['side'] = [x['side'] for x in all_orders if x['info']['state'] in ['filled','partially filled']]
+                trading_recode['symbol'] = [x['symbol'] for x in all_orders if x['info']['state'] in ['filled','partially filled']]
 
                 trading_recode.to_csv('trade_recording.csv')
                 self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"导出成功"))
@@ -372,7 +372,7 @@ class Ui_Form(object):
         MIN_HOLDING = np.ceil(max(0,int(int(self.textEdit_minposition.toPlainText())/AMOUNT)))
         INF_PRICE = 15000
         self.holding_u = -scipy.linspace(-MAX_HOLDING,-MIN_HOLDING,-MIN_HOLDING+MAX_HOLDING+1)
-        price_u = scipy.linspace(MIN_HOLDING*DISTANCE,MAX_HOLDING*DISTANCE,-MIN_HOLDING+MAX_HOLDING+1)
+        price_u = scipy.linspace(-MAX_HOLDING*DISTANCE,-MIN_HOLDING*DISTANCE,-MIN_HOLDING+MAX_HOLDING+1)
         self.bid_price_u = ZERO_POINT + np.hstack((-ZERO_POINT,price_u[:-1]))
         self.ask_price_u = ZERO_POINT + np.hstack((price_u[1:], INF_PRICE))
         self.AMOUNT = AMOUNT

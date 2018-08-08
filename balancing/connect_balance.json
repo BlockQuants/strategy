@@ -1,0 +1,23 @@
+{
+    "info":
+    [
+        {
+            "exchange": "huobipro", 
+            "coin": "USDT", 
+            "apiKey": "",
+            "secret": ""
+        },
+        {
+            "exchange": "huobipro", 
+            "coin": "ETH", 
+            "apiKey": "",
+            "secret": ""
+        },
+        {
+            "exchange": "huobipro", 
+            "coin": "BTC", 
+            "apiKey": "",
+            "secret": ""
+        }
+    ]
+}

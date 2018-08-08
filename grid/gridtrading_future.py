@@ -379,7 +379,7 @@ class Ui_Form(object):
 
 
         self.holding_u = -scipy.linspace(-MAX_HOLDING,-MIN_HOLDING,-MIN_HOLDING+MAX_HOLDING+1)
-        price_u = scipy.linspace(MIN_HOLDING*DISTANCE,MAX_HOLDING*DISTANCE,-MIN_HOLDING+MAX_HOLDING+1)
+        price_u = scipy.linspace(-MAX_HOLDING*DISTANCE,-MIN_HOLDING*DISTANCE,-MIN_HOLDING+MAX_HOLDING+1)
 
         self.bid_price_u = ZERO_POINT + np.hstack((-ZERO_POINT,price_u[:-1]))
         self.ask_price_u = ZERO_POINT + np.hstack((price_u[1:], INF_PRICE))
