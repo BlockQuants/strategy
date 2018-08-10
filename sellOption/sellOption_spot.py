@@ -370,7 +370,7 @@ class Ui_Form(object):
                 else:
                     with open(r'connect.json','r') as load_f:
                         load_dict = json.load(load_f)
-                    exec("self.api = ccxt."+self.exchange+"({'apiKey': load_dict['apiKey'],'secret': load_dict['secret'],})")
+                        exec("self.api = ccxt."+self.exchange+"({'apiKey': load_dict['apiKey'],'secret': load_dict['secret'],})")
             if self.onProcess == 1:
                 try:
                     balace_temp = self.api.fetch_balance()[self.contract.split('/')[0]]
