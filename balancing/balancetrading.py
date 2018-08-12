@@ -51,10 +51,10 @@ class Ui_Form(object):
         self.pushButton_begin.setObjectName(_fromUtf8("pushButton_begin"))
 
         self.tableView = QtGui.QTableView(Form)
-        self.tableView.setGeometry(QtCore.QRect(110, 260, 421, 240))
+        self.tableView.setGeometry(QtCore.QRect(110, 260, 470, 240))
         self.tableView.setObjectName(_fromUtf8("tableView"))
         self.tableView_table = QtGui.QTableView(Form)
-        self.tableView_table.setGeometry(QtCore.QRect(110, 75, 421, 150))
+        self.tableView_table.setGeometry(QtCore.QRect(110, 75, 470, 150))
         self.tableView_table.setObjectName(_fromUtf8("tableView_table"))
 
         self.pushButton_stop = QtGui.QPushButton(Form)
@@ -84,11 +84,11 @@ class Ui_Form(object):
         self.pushButton_login.setCheckable(False)
         self.pushButton_login.setObjectName(_fromUtf8("pushButton_login"))
         self.label_10 = QtGui.QLabel(Form)
-        self.label_10.setGeometry(QtCore.QRect(20, 255, 72, 15))
+        self.label_10.setGeometry(QtCore.QRect(30, 240, 72, 15))
         self.label_10.setObjectName(_fromUtf8("label_10"))
 
         self.label_12 = QtGui.QLabel(Form)
-        self.label_12.setGeometry(QtCore.QRect(20, 60, 72, 15))
+        self.label_12.setGeometry(QtCore.QRect(30, 60, 72, 15))
         self.label_12.setObjectName(_fromUtf8("label_12"))
         self.pushButton_loadtable = QtGui.QPushButton(Form)
         self.pushButton_loadtable.setGeometry(QtCore.QRect(120, 0, 121, 41))
@@ -126,6 +126,7 @@ class Ui_Form(object):
         self.timer.timeout.connect(self.unit_work)
         self.row_count = 0
         self.login_ok = 0
+        self.error_count = 0
         self.onProcess = 0
         self.load_ok = 0
         self.model = QtGui.QStandardItemModel(self.tableView)
@@ -133,7 +134,7 @@ class Ui_Form(object):
         self.model.setColumnCount(1)
         self.model.setHeaderData(0,QtCore.Qt.Horizontal,_fromUtf8(u"日志"))
         self.tableView.setModel(self.model) 
-        self.tableView.setColumnWidth(0,365)
+        self.tableView.setColumnWidth(0,415)
         self.model_table = QtGui.QStandardItemModel(self.tableView_table)
         self.model_table.setRowCount(100)
         self.model_table.setColumnCount(5)
@@ -143,11 +144,11 @@ class Ui_Form(object):
         self.model_table.setHeaderData(4,QtCore.Qt.Horizontal,_fromUtf8(u"下单量比例"))
         self.model_table.setHeaderData(3,QtCore.Qt.Horizontal,_fromUtf8(u"中间价"))
         self.tableView_table.setModel(self.model_table) 
-        self.tableView_table.setColumnWidth(0,60)
-        self.tableView_table.setColumnWidth(1,70)
-        self.tableView_table.setColumnWidth(2,90)
-        self.tableView_table.setColumnWidth(3,80)
-        self.tableView_table.setColumnWidth(4,60)
+        self.tableView_table.setColumnWidth(0,70)
+        self.tableView_table.setColumnWidth(1,80)
+        self.tableView_table.setColumnWidth(2,100)
+        self.tableView_table.setColumnWidth(3,70)
+        self.tableView_table.setColumnWidth(4,90)
 
     def begin(self):
 
@@ -234,8 +235,14 @@ class Ui_Form(object):
                 self.tableView.setModel(self.model) 
             except:
                 self.model.setItem(self.row_count, 0, QtGui.QStandardItem("查询失败"))
-                self.row_count += 1
                 self.tableView.setModel(self.model) 
+                if self.error_count<10:
+                        self.error_count += 1
+                else:
+                    with open(r'connect.json','r') as load_f:
+                        load_dict = json.load(load_f)
+                    exec("self.api = ccxt."+self.exchange+"({'apiKey': load_dict['apiKey'],'secret': load_dict['secret'],})")
+
 
             today = datetime.date.today()
             since = self.api_list[0].parse8601('%sT00:00:00.0000' %today.isoformat()) - 100000000
@@ -333,7 +340,7 @@ class Ui_Form(object):
 
     def login(self):
         if self.login_ok == 0:
-            with open(r'connect_balance.json','r') as load_f:
+            with open(r'connect_balance_new.json','r') as load_f:
                 load_dict = json.load(load_f)                
             self.api_list = []
             self.coin_list = []
