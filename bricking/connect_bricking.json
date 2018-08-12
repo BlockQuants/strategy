@@ -1,0 +1,23 @@
+{
+    "info":
+    [
+        {
+            "exchange": "huobipro", 
+            "contract": "BTC/USDT", 
+            "apiKey": "",
+            "secret": ""
+        },
+        {
+            "exchange": "binance", 
+            "contract": "BTC/USDT", 
+            "apiKey": "",
+            "secret": ""
+        },
+        {
+            "exchange": "bitfinex", 
+            "contract": "BTC/USDT", 
+            "apiKey": "",
+            "secret": ""
+        }
+    ]
+}
