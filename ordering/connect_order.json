@@ -1,0 +1,17 @@
+{
+    "info":
+    [
+		{
+		    "exchange": "huobipro", 
+		    "label": "huobi1", 
+		    "apiKey": "",
+		    "secret": ""
+		},
+        {
+            "exchange": "huobipro", 
+            "label": "huobi2", 
+            "apiKey": "",
+            "secret": ""
+        }
+    ]
+}
