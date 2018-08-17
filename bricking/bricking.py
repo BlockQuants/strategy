@@ -110,7 +110,7 @@ class Ui_Form(object):
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
-        Form.setWindowTitle(_translate("Form", "币值平衡策略", None))
+        Form.setWindowTitle(_translate("Form", "软搬砖策略", None))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8("logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Form.setWindowIcon(icon)
@@ -119,8 +119,8 @@ class Ui_Form(object):
         self.pushButton_downLoadTrading.setText(_translate("Form", "成交记录导出", None))
         self.pushButton_login.setText(_translate("Form", "账户登录", None))
         self.label_10.setText(_translate("Form", "策略日志", None))
-        self.label_12.setText(_translate("Form", "平衡表", None))
-        self.pushButton_loadtable.setText(_translate("Form", "载入平衡表", None))
+        self.label_12.setText(_translate("Form", "持仓表", None))
+        self.pushButton_loadtable.setText(_translate("Form", "载入配置表", None))
 
         self.timer = QTimer(Form)
         self.timer.timeout.connect(self.unit_work)
@@ -139,11 +139,11 @@ class Ui_Form(object):
         self.model_table.setRowCount(100)
         self.model_table.setColumnCount(6)
         self.model_table.setHeaderData(0,QtCore.Qt.Horizontal,_fromUtf8(u"合约"))
-        self.model_table.setHeaderData(1,QtCore.Qt.Horizontal,_fromUtf8(u"账户余额"))
-        self.model_table.setHeaderData(2,QtCore.Qt.Horizontal,_fromUtf8(u"实际持仓"))
-        self.model_table.setHeaderData(4,QtCore.Qt.Horizontal,_fromUtf8(u"下单量比例"))
+        self.model_table.setHeaderData(1,QtCore.Qt.Horizontal,_fromUtf8(u"实际持仓"))
+        self.model_table.setHeaderData(2,QtCore.Qt.Horizontal,_fromUtf8(u"账户余额"))
+        self.model_table.setHeaderData(4,QtCore.Qt.Horizontal,_fromUtf8(u"下单量"))
         self.model_table.setHeaderData(3,QtCore.Qt.Horizontal,_fromUtf8(u"中间价"))
-        self.model_table.setHeaderData(5,QtCore.Qt.Horizontal,_fromUtf8(u"最小价差"))
+        self.model_table.setHeaderData(5,QtCore.Qt.Horizontal,_fromUtf8(u"滑点"))
         self.tableView_table.setModel(self.model_table) 
         self.tableView_table.setColumnWidth(0,70)
         self.tableView_table.setColumnWidth(1,70)
@@ -237,7 +237,7 @@ class Ui_Form(object):
                             self.model.setItem(self.row_count, 0, QtGui.QStandardItem("下单：%s  买单  %s"%(self.contract_list[buy_num],self.bid_p_list[buy_num] + self.slide_list[buy_num])))
                             self.row_count += 1
                             self.tableView.setModel(self.model)
-                        except:
+                       except:
                             self.model.setItem(self.row_count, 0, QtGui.QStandardItem("下单失败：%s  买单  %s"%(self.contract_list[buy_num],self.bid_p_list[buy_num] + self.slide_list[buy_num])))
                             self.row_count += 1
 
@@ -248,7 +248,7 @@ class Ui_Form(object):
                             self.model.setItem(self.row_count, 0, QtGui.QStandardItem("下单：%s  卖单  %s"%(self.contract_list[sell_num],self.bid_p_list[sell_num] + self.slide_list[sell_num])))
                             self.row_count += 1
                             self.tableView.setModel(self.model)
-                        except:
+                       except:
 
                             self.model.setItem(self.row_count, 0, QtGui.QStandardItem("下单失败：%s  卖单  %s"%(self.contract_list[sell_num],self.bid_p_list[sell_num] + self.slide_list[sell_num])))
                             self.row_count += 1
@@ -289,29 +289,25 @@ class Ui_Form(object):
         path = r'config_table.xlsx'
         df_table = pd.read_excel(path)
         df_table.index = df_table['exchange']
-        self.aiming_ratio_list = []
         self.AMOUNT_list = []
         self.slide_list = []
-        self.contract_list = []
         self.min_spread = []
-        try:
-            for exchange in self.exchange_list:
-                self.AMOUNT_list.append(df_table['amount'][exchange])
-                self.slide_list.append(df_table['slide_point'][exchange])
-                self.min_spread.append(df_table['min_spread'][exchange])
-        except:
-                self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"载入配置表失败"))
-                self.row_count += 1  
+        # try:
+        for exchange in self.exchange_list:
+            self.AMOUNT_list.append(df_table['amount'][exchange])
+            self.slide_list.append(df_table['slide_point'][exchange])
+            self.min_spread.append(df_table['min_spread'][exchange])
+        # except:
+        #         self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"载入配置表失败"))
+        #         self.row_count += 1  
 
         #表与登录信息对应
 
-        for i in range(len(self.aiming_ratio_list)):
+        for i in range(len(self.contract_list)):
 
             self.model_table.setItem(i, 0, QtGui.QStandardItem('%s'%self.exchange_list[i]))
             self.model_table.setItem(i, 4, QtGui.QStandardItem('%s'%self.AMOUNT_list[i]))
             self.model_table.setItem(i, 5, QtGui.QStandardItem('%s'%self.slide_list[i]))
-            self.model_table.setItem(i, 6, QtGui.QStandardItem('%s'%self.slide_list[i]))
-
 
         self.tableView_table.setModel(self.model_table) 
 
@@ -339,7 +335,7 @@ class Ui_Form(object):
                         self.amount_limit_list.append(content['limits']['amount'])
                         self.slide_list[j] = np.ceil(self.slide_list[j])/10**precision['price']
                         self.precision_list.append(precision['amount'])
-                        if self.AMOUNT_list[j] > self.amount_limit_list[j]['max'] or self.AMOUNT_list[j] < self.amount_limit_list[j]['min']:
+                        if self.AMOUNT_list[j] < self.amount_limit_list[j]['min']:
                             self.model.setItem(self.row_count, 0, QtGui.QStandardItem("下单量不符合规范，请重新设置"))
                             self.row_count += 1
                             return  
@@ -372,7 +368,7 @@ class Ui_Form(object):
             try:
                 balance_list = []
                 for i in range(len(self.api_list)):
-                    balace_temp = self.api_list[i].fetch_balance()[self.coin_list[i]]
+                    balace_temp = self.api_list[i].fetch_balance()[self.contract_list[i].split('/')[0]]
                     balance_list.append(balace_temp['free'])
                     #显示各个账户余额
                 self.model.setItem(self.row_count, 0, QtGui.QStandardItem(u"登录成功"))

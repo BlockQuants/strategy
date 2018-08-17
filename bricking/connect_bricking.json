@@ -8,14 +8,8 @@
             "secret": ""
         },
         {
-            "exchange": "binance", 
-            "contract": "BTC/USDT", 
-            "apiKey": "",
-            "secret": ""
-        },
-        {
-            "exchange": "bitfinex", 
-            "contract": "BTC/USDT", 
+            "exchange": "quoinex", 
+            "contract": "BTC/USD", 
             "apiKey": "",
             "secret": ""
         }
