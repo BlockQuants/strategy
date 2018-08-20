@@ -24,7 +24,7 @@
 3．程序化挂单，自动化程序根据实时的委托、成交和持仓信息，进行网格挂单和补挂单。
 
 <div align="center">
-<img src="http://BlockQuants.com/img/grid.png" height="600" width="400">
+<img src="http://BlockQuants.com/img/grid.png" height="400" width="600">
  </div>
  - 网格交易策略适用于短期价格波动剧烈，价格水平上下往复的资产。通过低买高卖在资产价格的上下震荡之中获取买卖价差。
 
@@ -67,7 +67,7 @@
 
 在打开策略界面之后：
 <div align="center">
-<img src="http://BlockQuants.com/img/grid_ui.png" height="600" width="400">
+<img src="http://BlockQuants.com/img/grid_ui.png" height="400" width="600">
  </div>
 
 
