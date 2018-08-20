@@ -1,4 +1,4 @@
-## 官方说明[http://blockquants.com/grid.html](http://blockquants.com/grid.html)
+## 官方说明: [http://blockquants.com/grid.html](http://blockquants.com/grid.html)
 ## 策略说明
 ### 策略标签
 提供流动性，挂单实现低买高卖。
@@ -23,7 +23,7 @@
 
 3．程序化挂单，自动化程序根据实时的委托、成交和持仓信息，进行网格挂单和补挂单。
 
-![grid](BlockQuants.com/img/grid.png)
+![grid](http://BlockQuants.com/img/grid.png)
 
  - 网格交易策略适用于短期价格波动剧烈，价格水平上下往复的资产。通过低买高卖在资产价格的上下震荡之中获取买卖价差。
 
@@ -50,11 +50,11 @@
 
 网格策略的参数与挂单表是一一对应的，一组参数决定了唯一的一张挂单表。假设参数设定如下：
 
-网格参数
+![para](http://BlockQuants.com/img/grid_par.png)
 
 则对应的挂单表如下：
 
-网格挂单表
+![table](http://BlockQuants.com/img/grid_table.png)
 
 挂单表决定了策略的执行过程。当策略启动或者账户的持仓发生变化时，程序会根据账户的持仓和挂单表找到要挂的买卖单的委托价格。例如目前账户持仓为60，则根据挂单表得到的买卖挂单价格分别为7840和7900。若此时这两个价位没有已挂单，则程序会自动进行挂单。
 
@@ -62,7 +62,7 @@
 
 在打开策略界面之后：
 
-网格交易界面
+![ui](http://BlockQuants.com/img/grid_ui.png)
 
 - 点击账户登录：程序会读取connect.json中的参数，并尝试从交易所获取账户信息。如果登录信息和网络连接正常，则策略日志会显示登录成功。
 - 设定策略参数：参照上一节的内容，根据自身的需求设定策略参数。在设定好参数后，点击生成挂单表。则程序会将生成的挂单表显示在右侧。
