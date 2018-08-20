@@ -23,8 +23,9 @@
 
 3．程序化挂单，自动化程序根据实时的委托、成交和持仓信息，进行网格挂单和补挂单。
 
-![grid](http://BlockQuants.com/img/grid.png)
-
+<div align="center">
+<img src="http://BlockQuants.com/img/grid.png" height="600" width="400">
+ </div>
  - 网格交易策略适用于短期价格波动剧烈，价格水平上下往复的资产。通过低买高卖在资产价格的上下震荡之中获取买卖价差。
 
  - 网格交易在当前数字货币市场收益率较为可观。以BTC/USD为例，在中轴（S0）正负800美元内，每隔30美元挂单，超过设定范围停止交易，保证低杠杆。一天可以成交20-30个来回，平均每天千分之五的回报。 如果选择货币对网格交易（如ETH/BTC）作为网格策略的交易对象，则策略的风险会更低，但预期收益会有所下降。
@@ -66,7 +67,7 @@
 
 在打开策略界面之后：
 <div align="center">
-<img src="http://BlockQuants.com/img/grid_ui.png" height="600" width="600">
+<img src="http://BlockQuants.com/img/grid_ui.png" height="600" width="400">
  </div>
 
 
