@@ -51,6 +51,10 @@
 网格策略的参数与挂单表是一一对应的，一组参数决定了唯一的一张挂单表。假设参数设定如下：
 
 ![para](http://BlockQuants.com/img/grid_par.png)
+<div align="center">
+<img src="http://BlockQuants.com/img/grid_par.png"  >
+
+ </div>
 
 则对应的挂单表如下：
 
