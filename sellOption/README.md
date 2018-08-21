@@ -13,7 +13,7 @@
 
 金融资产的持有者，卖出相应数量的看涨期权的交易策略被称为Covered Call。通过卖出虚值的看涨期权，金融资产的持有者能够通过收取期权费的方式增厚持有资产的收益，同时能够获得大部分的由资产价格上涨带来的收益。
 <div align="center">
-<img src="http://BlockQuants.com/img/optionrep.png" height="400" width="400">
+<img src="http://BlockQuants.com/img/optionrep.png" height="250" width="400">
  </div>
 由于数字货币的期权市场发展尚不完善，因此，直接买卖数字货币的期权成本较高。我们提出的解决方案是：使用Delta 动态对冲方法，复制卖出看涨期权，使得数字货币的投资者等价的持有Covered Call。
 
